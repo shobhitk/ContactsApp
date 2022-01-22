@@ -104,6 +104,9 @@ class ContactsDB(object):
                 elif fltr[1] == "contains":
                     fltr_string = fltr[0] + " LIKE '%" + fltr[2] + "%'"
 
+                elif fltr[1] == "does_not_contain":
+                    fltr_string = "NOT (" + fltr[0] + " LIKE '%" + fltr[2] + "%')"
+
                 else:
                     raise Exception("Invalid Condition for filter:" + str(fltr))
 
