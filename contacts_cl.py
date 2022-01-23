@@ -15,19 +15,19 @@ class ContactsCL(object):
         # builds table based on table_name
         print("\nPlease Enter the fields you need based on this convention:")
         print("<field_name_1>=><field_type>|<field_name_2>=><field_type>|...")
-        column_str = input("Fields: ")
-        columns_dict = {}
+        field_str = input("Fields: ")
+        fields_dict = {}
 
-        for column in column_str.split("|"):
-            column = column.strip()
-            if len(column.split("=>")) != 2:
-                self.contacts_db.close()
-                raise Exception("Invalid Columns!")
+        for field in field_str.split("|"):
+            field = field.strip()
+            if len(field.split("=>")) != 2:
+                self.contacts_db.close_conn()
+                raise Exception("Invalid Fields!")
 
-            column_name, column_type = column.split("=>")
-            columns_dict[column_name] = column_type
+            field_name, field_type = field.split("=>")
+            fields_dict[field_name] = field_type
 
-        result = self.contacts_db.create_table(table_name, columns_dict)
+        result = self.contacts_db.create_table(table_name, fields_dict)
         if result:
             print("Table:", table_name, "successfully created.")
 
@@ -61,7 +61,7 @@ class ContactsCL(object):
         for f in filter_str.split("|"):
             filter_parts = f.split("~")
             if len(filter_parts) != 3:
-                self.contacts_db.close()
+                self.contacts_db.close_conn()
                 raise Exception("Invalid Filter!")
 
             if not re.match("\".+\"", filter_parts[2]) and filter_parts[2].isnumeric():
@@ -72,7 +72,7 @@ class ContactsCL(object):
                 filters.append([filter_parts[0], filter_parts[1], filter_parts[2].strip("\"")])
 
             else:
-                self.contacts_db.close()
+                self.contacts_db.close_conn()
                 raise Exception("Invalid Filter!")
 
         print("\nPlease Enter the fields you want to display based on this convention:")
@@ -88,12 +88,8 @@ class ContactsCL(object):
             elif display_style == 'tabular':
                 self._display_tabular_dict(result)
 
-    def delete_data(self, table_name):
-        print("\nPlease Enter the ids to delete based on this convention:")
-        print("<id_1>|<id_2>")
-        id_str = input("IDs:")
-        ids = [int(_id) for _id in id_str.split("|")]
-        result = self.contacts_db.delete(table_name, ids)
+    def delete_data(self, table_name, _id):
+        result = self.contacts_db.delete(table_name, _id)
         if result:
             print("Data successfully removed!")
 
@@ -121,7 +117,7 @@ class ContactsCL(object):
                 continue
 
             if len(data.split("=>")) != 2:
-                self.contacts_db.close()
+                self.contacts_db.close_conn()
                 raise Exception("Invalid Filter!")
 
             key, val = data.split("=>")
@@ -192,7 +188,7 @@ if __name__ == "__main__":
         contacts_cl.find_data(args.table_name, args.display_style)
 
     elif args.delete_data:
-        contacts_cl.delete_data(args.table_name)
+        contacts_cl.delete_data(args.table_name, args._id)
 
     elif args.update_data:
         contacts_cl.update_data(args.table_name, args.id)

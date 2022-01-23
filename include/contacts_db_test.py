@@ -34,7 +34,7 @@ class TestContactsDb(unittest.TestCase):
 
 	def test_6_delete_data(self):
 		self.contacts_db.add("Test_Table", {"name":"DEF","age":10})
-		self.contacts_db.delete("Test_Table", [2])
+		self.contacts_db.delete("Test_Table", 2)
 		result = self.contacts_db.find("Test_Table", [["id","equals",2]], ["id","name"])
 		self.assertEqual(result, [])
 
