@@ -2,7 +2,6 @@ import os
 import sqlite3 as sl
 from pprint import pprint
 
-
 class ContactsDB(object):
     def __init__(self, db_path):
         if not os.path.isdir(os.path.dirname(db_path)):
@@ -17,6 +16,7 @@ class ContactsDB(object):
         for key, val in columns.items():
             upper_val = val.upper()
             if upper_val not in ["TEXT", "INT", "INTEGER", "REAL", "NULL"]:
+                self.conn.close()
                 raise Exception(
                     "Invalid Data type for Column:",
                 )
@@ -26,14 +26,24 @@ class ContactsDB(object):
         sql_command = """CREATE TABLE IF NOT EXISTS {0} ({1});""".format(
             table_name, columns_str
         )
+        try:
+            self.conn.execute(sql_command)
+            self.conn.commit()
+            return True
+        except:
+            print('Database Operation Failed:', sql_command)
+            self.close()
+            return False
 
-        self.conn.execute(sql_command)
-        self.conn.commit()
-
-    def remove_table(self, table_name):
+    def delete_table(self, table_name):
         sql_command = 'DROP TABLE ' + table_name
-        self.conn.execute(sql_command)
-        self.conn.commit()
+        try:
+            self.conn.execute(sql_command)
+            self.conn.commit()
+            return True
+        except:
+            self.close()
+            return False
 
     def does_table_exist(self, table_name):
         sql_command = (
@@ -41,21 +51,29 @@ class ContactsDB(object):
                 table_name
             )
         )
-        cursor = self.conn.execute(sql_command)
-        result = len(cursor.fetchall())
-        if result:
-            return True
+        try:
+            cursor = self.conn.execute(sql_command)
+            result = len(cursor.fetchall())
+            if result:
+                return True
 
-        return False
+            return False
 
-    def create(self, table_name, data):
+        except:
+            print('Database Operation Failed:', sql_command)
+            return None
+
+    def add(self, table_name, data):
         if not self.does_table_exist(table_name):
+            self.conn.close()
             raise Exception("Table " + table_name + " does not exist.")
 
         if not isinstance(data, dict):
+            self.conn.close()
             raise Exception("Invalid data type!")
 
         if "id" in data.keys():
+            self.conn.close()
             raise Exception("id field is immutable and cannot be set by user.")
 
         key_data = ", ".join(data.keys())
@@ -72,14 +90,21 @@ class ContactsDB(object):
         sql_command = "INSERT INTO {0} ({1}) values({2})".format(
             table_name, key_data, val_data
         )
-        self.conn.execute(sql_command)
-        self.conn.commit()
+        try:
+            self.conn.execute(sql_command)
+            self.conn.commit()
+            return True
+        except:
+            print('Database Operation Failed:', sql_command)
+            return False
 
     def find(self, table_name, filters, fields, operator="AND"):
         if not self.does_table_exist(table_name):
+            self.conn.close()
             raise Exception("Table " + table_name + " does not exist.")
 
         if not isinstance(filters, list):
+            self.conn.close()
             raise Exception("Invalid filter data type!")
 
         columns = self.get_table_columns(table_name)
@@ -92,9 +117,11 @@ class ContactsDB(object):
 
         for fltr in filters:
             if not isinstance(fltr, list):
+                self.conn.close()
                 raise Exception("Invalid filter in filters!")
 
             if fltr[0] not in columns:
+                self.conn.close()
                 raise Exception("Invalid filter field:" + fltr[0])
 
             if isinstance(fltr[2], str):
@@ -108,6 +135,7 @@ class ContactsDB(object):
                     fltr_string = "NOT (" + fltr[0] + " LIKE '%" + fltr[2] + "%')"
 
                 else:
+                    self.conn.close()
                     raise Exception("Invalid Condition for filter:" + str(fltr))
 
             if isinstance(fltr[2], int):
@@ -130,6 +158,7 @@ class ContactsDB(object):
                     fltr_string = fltr[0] + "!=" + str(fltr[2])
 
                 else:
+                    self.conn.close()
                     raise Exception("Invalid Condition for filter:" + str(fltr))
 
             fltr_list.append(fltr_string)
@@ -143,8 +172,13 @@ class ContactsDB(object):
         else:
             sql_command = "SELECT {0} FROM {1};".format(field_str, table_name)
 
-        cursor = self.conn.cursor()
-        rows = cursor.execute(sql_command)
+        try:
+            cursor = self.conn.cursor()
+            rows = cursor.execute(sql_command)
+        except:
+            print('Database Operation Failed:', sql_command)
+            return False
+
         for row in rows:
             data_dict = {}
             for index in range(len(fields)):
@@ -160,9 +194,11 @@ class ContactsDB(object):
 
         for key, val in data.items():
             if key not in columns:
+                self.conn.close()
                 raise Exception("Invalid Data Field")
 
             if key == "id":
+                self.conn.close()
                 raise Exception("ID field is Immutable.")
 
             if isinstance(val, str):
@@ -176,19 +212,34 @@ class ContactsDB(object):
         sql_command = "UPDATE {0} SET {1} WHERE id={2}".format(
             table_name, update_data_str, _id
         )
-        self.conn.execute(sql_command)
-        self.conn.commit()
+        try:
+            self.conn.execute(sql_command)
+            self.conn.commit()
+            return True
+        except:
+            self.close()
+            return False
 
     def delete(self, table_name, ids):
         sql_command = (
             "DELETE FROM " + table_name + " WHERE id IN " + str(tuple(ids)) + ";"
         )
-        self.conn.execute(sql_command)
-        self.conn.commit()
+        try:
+            self.conn.execute(sql_command)
+            self.conn.commit()
+            return True
+        except:
+            self.close()
+            return False
 
     def get_table_columns(self, table_name):
         sql_command = "SELECT * FROM " + table_name
-        cursor = self.conn.execute(sql_command)
+        try:
+            cursor = self.conn.execute(sql_command)
+        except:
+            print('Database Operation Failed:', sql_command)
+            return False
+
         row = cursor.fetchone()
         if row:
             names = row.keys()
@@ -200,59 +251,3 @@ class ContactsDB(object):
     def close(self):
         self.conn.close()
 
-
-# TESTS
-test_contacts_db_conn = ContactsDB("C:/tmp/test.db")
-# test_contacts_db_conn.create_table("BAD_CONTACTS", {
-# 	"name": "TEXT",
-# 	"address": "TEXT",
-# 	"phone_number": "TEXT"
-# 	})
-
-# print(test_contacts_db_conn.does_table_exist('PERSONAL_CONTACTS'))
-# test_contacts_db_conn.create('PERSONAL_CONTACTS',
-# 	{
-# 		"name": "Jasmine",
-# 		"address": "11305, 240St",
-# 		"phone_number": "236-688-4650"
-# 	})
-
-# test_contacts_db_conn.create('PERSONAL_CONTACTS',
-# 	{
-# 		"name": "Shobhit",
-# 		"address": "11305, 240St",
-# 		"phone_number": "236-688-6126"
-# 	})
-
-# test_contacts_db_conn.create('PERSONAL_CONTACTS',
-# 	{
-# 		"name": "Luna",
-# 		"address": "11305, 240St",
-# 	})
-
-# test_contacts_db_conn.create('PERSONAL_CONTACTS',
-# 	{
-# 		"name": "Test",
-# 		"address": "11305, 240St",
-# })
-
-# test_contacts_db_conn.delete('PERSONAL_CONTACTS', [31,32])
-
-# test_contacts_db_conn.get_table_columns('PERSONAL_CONTACTS')
-
-# pprint(test_contacts_db_conn.find('PERSONAL_CONTACTS',
-# 	[
-# 		['name', 'contains', 'S'],
-# 		['phone_number', 'is', '236-688-6126']
-# 	],
-# 	['name', 'address', 'phone_number'],
-# 	operator='OR'
-# ))
-
-# test_contacts_db_conn.update(
-#     "PERSONAL_CONTACTS",
-#     30,
-#     {"name": "Shobhit Khinvasara", "address": "11305, 240St Maple Ridge"},
-# )
-
-# test_contacts_db_conn.remove_table("BAD_CONTACTS")
