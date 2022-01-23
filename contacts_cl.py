@@ -15,7 +15,6 @@ class ContactsCL(object):
         # builds table based on table_name
         print("\nPlease Enter the fields you need based on this convention:")
         print("<field_name_1>=><field_type>|<field_name_2>=><field_type>|...")
-        # TO DO: Write more instructions on how this will work
         column_str = input("Fields: ")
         columns_dict = {}
 
@@ -23,7 +22,7 @@ class ContactsCL(object):
             column = column.strip()
             if len(column.split("=>")) != 2:
                 self.contacts_db.close()
-                raise Exception("Invalid Filter!")
+                raise Exception("Invalid Columns!")
 
             column_name, column_type = column.split("=>")
             columns_dict[column_name] = column_type
@@ -36,6 +35,10 @@ class ContactsCL(object):
         result = self.contacts_db.delete_table(table_name)
         if result:
             print("Table:", table_name, "successfully removed.")
+
+    def list_tables(self):
+        result = self.contacts_db.list_tables()
+        pprint(result)
 
     def add_data(self, table_name):
         print("\nPlease Enter the data you want to add based on this convention:")
@@ -80,8 +83,10 @@ class ContactsCL(object):
         result = self.contacts_db.find(table_name, filters, fields)
         if result:
             # TO DO: Support tabular and dictionary views
-            pprint(result)
-
+            if display_style == 'dict':
+                pprint(result)
+            elif display_style == 'tabular':
+                self._display_tabular_dict(result)
 
     def delete_data(self, table_name):
         print("\nPlease Enter the ids to delete based on this convention:")
@@ -133,6 +138,21 @@ class ContactsCL(object):
 
         return data_dict
 
+    def _display_tabular_dict(self, data_dict_list):
+        keys = list(data_dict_list[0].keys())
+        header_str = ""
+        for key in keys:
+            header_str += "|{:<20}".format(key.rjust(10))
+        header_str += "|"
+
+        print(header_str)
+        for data_dict in data_dict_list:
+            data_str = ""
+            for k, v in data_dict.items():
+                data_str += "|{:<20}".format(str(v).rjust(10))
+
+            data_str += "|"
+            print(data_str)
 
 def main():
     contacts_cl = ContactsCL()
@@ -144,6 +164,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--create_table", help="Set this to build a new table.", action="store_true")
     parser.add_argument("--delete_table", help="Set this to remove the table from the database.", action="store_true")
+    parser.add_argument("--list_tables", help="Set this to display all tables in the database.", action="store_true")
     parser.add_argument("--add_data", help="Set this to add data to specified table name.", action="store_true")
     parser.add_argument("--find_data", help="Set this to find data in specified table name.", action="store_true")
     parser.add_argument("--delete_data", help="Set this to remove data to specified table name based on the provided id.", action="store_true")
@@ -160,6 +181,9 @@ if __name__ == "__main__":
 
     elif args.delete_table:
         contacts_cl.delete_table(args.table_name)
+
+    elif args.list_tables:
+        contacts_cl.list_tables()
 
     elif args.add_data:
         contacts_cl.add_data(args.table_name)

@@ -4,8 +4,9 @@ from pprint import pprint
 
 class ContactsDB(object):
     def __init__(self, db_path):
-        if not os.path.isdir(os.path.dirname(db_path)):
-            os.makedirs(os.path.dirname(db_path))
+        if db_path != ':memory:':
+            if not os.path.isdir(os.path.dirname(db_path)):
+                os.makedirs(os.path.dirname(db_path))
 
         self.db_path = db_path
         self.conn = sl.connect(db_path)
@@ -58,6 +59,18 @@ class ContactsDB(object):
                 return True
 
             return False
+
+        except:
+            print('Database Operation Failed:', sql_command)
+            return None
+
+    def list_tables(self):
+        sql_command = (
+            "SELECT name FROM sqlite_master WHERE type='table';")
+        try:
+            cursor = self.conn.execute(sql_command)
+            result = [res[0] for res in cursor.fetchall()]
+            return result
 
         except:
             print('Database Operation Failed:', sql_command)
@@ -151,7 +164,7 @@ class ContactsDB(object):
                 elif fltr[1] == "greater_than_equal":
                     fltr_string = fltr[0] + "<" + str(fltr[2])
 
-                elif fltr[1] == "equal":
+                elif fltr[1] == "equals":
                     fltr_string = fltr[0] + "=" + str(fltr[2])
 
                 elif fltr[1] == "not_equal":
@@ -221,9 +234,16 @@ class ContactsDB(object):
             return False
 
     def delete(self, table_name, ids):
-        sql_command = (
-            "DELETE FROM " + table_name + " WHERE id IN " + str(tuple(ids)) + ";"
-        )
+        if not ids:
+            raise Exception("No ID specified.")
+        if len(ids) == 1:
+            sql_command = (
+                "DELETE FROM " + table_name + " WHERE id=" + str(ids[0]) + ";"
+            )
+        else:
+            sql_command = (
+                "DELETE FROM " + table_name + " WHERE id IN " + str(tuple(ids)) + ";"
+            )
         try:
             self.conn.execute(sql_command)
             self.conn.commit()
@@ -248,6 +268,19 @@ class ContactsDB(object):
             names = [description[0] for description in cursor.description]
             return names
 
+    def clear_all_data(self, table_name):
+        sql_command = (
+            "DELETE FROM " + table_name + ";"
+        )
+        try:
+            self.conn.execute(sql_command)
+            self.conn.commit()
+            return True
+        except:
+            self.close()
+            return False
+
     def close(self):
         self.conn.close()
+
 
