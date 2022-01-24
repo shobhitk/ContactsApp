@@ -46,8 +46,9 @@ Please Enter the fields you need based on this convention:
 <field_name_1>=><field_type>|<field_name_2>=><field_type>|...
 Fields: name=>text|school_id=>integer
 Table: Test_Table successfully created.
-
+```
 Add Data to Table:
+```
 python <path_to_tool>\contacts_cl.py --add_data --table_name New_Contacts
 
 Please Enter the data you want to add based on this convention:
