@@ -40,7 +40,7 @@ optional arguments:
 EXAMPLE USAGE:
 Create Table:
 ```
-python path_to_tool\contacts_cl.py --create_table --table_name Test_Table
+python <path_to_tool>\contacts_cl.py --create_table --table_name Test_Table
 
 Please Enter the fields you need based on this convention:
 <field_name_1>=><field_type>|<field_name_2>=><field_type>|...
@@ -55,4 +55,28 @@ Please Enter the data you want to add based on this convention:
 <field_name_1>=><data_1>|<field_name_2>=><data_2>|...
 Data: name=>"Joy"|age=>26
 Data successfully added.
+```
+Find Data in Table:
+```
+python <path_to_tool>\contacts_cl.py --find_data --table_name Personal_Contacts --display_style dict
+
+Please Enter the filter for your find based on this convention:
+<field_name_1>~<operator>~<value>|<field_name_2>~<operator>~<value>|..
+Valid Operators for Strings: is, is_not, contains, does_not_contain.
+Valid Operators for Integers: less_than, less_than_equal, greater_than, greater_than_equal, equals, not_equal.
+Please enclose text value in ("). Integer value should be specified as it is.
+Filter: phone_number~contains~"236"
+
+Please Enter the fields you want to display based on this convention:
+<field_name_1>|<field_name_2>|..
+Fields: name|address|phone_number
+[{'address': 'Addr 1',
+  'name': 'abc'
+  'phone_number': '236-1234'},
+ {'address': 'Addr 2',
+  'name': 'def'
+  'phone_number': '236-5678'},
+ {'address': 'Addr 3',
+  'name': 'ghi'
+  'phone_number': '236-9101'}]
 ```
