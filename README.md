@@ -14,7 +14,8 @@ This application allows the following features:
 Requires Python3.
 
 CommandLine Tool Usage:
->> python <path_to_tool>\contacts_cl.py -h
+```
+python path_to_tool\contacts_cl.py -h
 usage: contacts_cl.py [-h] [--create_table] [--delete_table] [--list_tables] [--display_table_schema] [--add_data] [--find_data] [--delete_data] [--update_data] [--list_data] [--table_name TABLE_NAME] [--id ID]
                       [--display_style DISPLAY_STYLE]
 
@@ -35,11 +36,11 @@ optional arguments:
   --id ID               ID of the record you want to remove or update
   --display_style DISPLAY_STYLE
                         Set this to display find data in a specific order. Supported modes are: "dict" and "tabular"
-
-
+```
 EXAMPLE USAGE:
 Create Table:
->>python <path_to_tool>\contacts_cl.py --create_table --table_name Test_Table
+```
+python path_to_tool\contacts_cl.py --create_table --table_name Test_Table
 
 Please Enter the fields you need based on this convention:
 <field_name_1>=><field_type>|<field_name_2>=><field_type>|...
@@ -47,11 +48,10 @@ Fields: name=>text|school_id=>integer
 Table: Test_Table successfully created.
 
 Add Data to Table:
->>python <path_to_tool>\contacts_cl.py --add_data --table_name New_Contacts
+python <path_to_tool>\contacts_cl.py --add_data --table_name New_Contacts
 
 Please Enter the data you want to add based on this convention:
 <field_name_1>=><data_1>|<field_name_2>=><data_2>|...
 Data: name=>"Joy"|age=>26
 Data successfully added.
-
-
+```
